@@ -1,15 +1,9 @@
 export const ORDERLY_DOMAIN_ADDRESS =
-  "0x76D75055dFA30b10a199271D9336bFC58aF5e9a9";
+  "0x851281B0d5F8B84c7c18eF66ea4C2B02AF084927";
 
 export const ORDERLY_DOMAIN_ABI = [
   {
-    inputs: [
-      {
-        internalType: "address",
-        name: "pythAddress",
-        type: "address",
-      },
-    ],
+    inputs: [],
     stateMutability: "nonpayable",
     type: "constructor",
   },
@@ -156,101 +150,6 @@ export const ORDERLY_DOMAIN_ABI = [
     type: "event",
   },
   {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "_resolvedAddress",
-        type: "string",
-      },
-      {
-        internalType: "uint256",
-        name: "_years",
-        type: "uint256",
-      },
-    ],
-    name: "registerDomain",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "uint256",
-        name: "_years",
-        type: "uint256",
-      },
-      {
-        internalType: "bytes[]",
-        name: "priceUpdateData",
-        type: "bytes[]",
-      },
-    ],
-    name: "renewDomain",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-    ],
-    name: "setPrimaryDomain",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "address",
-        name: "_newOwner",
-        type: "address",
-      },
-    ],
-    name: "transferDomain",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "_newAddress",
-        type: "string",
-      },
-    ],
-    name: "updateResolvedAddress",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
     inputs: [],
     name: "DOMAIN_EXTENSION",
     outputs: [
@@ -266,6 +165,32 @@ export const ORDERLY_DOMAIN_ABI = [
   {
     inputs: [],
     name: "DOMAIN_PRICE_USD",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "ETH_USD_PRICE_ID",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "REGISTRATION_DURATION",
     outputs: [
       {
         internalType: "uint256",
@@ -305,19 +230,6 @@ export const ORDERLY_DOMAIN_ABI = [
         internalType: "string",
         name: "name",
         type: "string",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "ETH_USD_PRICE_ID",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "",
-        type: "bytes32",
       },
     ],
     stateMutability: "view",
@@ -430,7 +342,7 @@ export const ORDERLY_DOMAIN_ABI = [
         type: "uint256",
       },
     ],
-    stateMutability: "view",
+    stateMutability: "pure",
     type: "function",
   },
   {
@@ -504,16 +416,103 @@ export const ORDERLY_DOMAIN_ABI = [
     type: "function",
   },
   {
-    inputs: [],
-    name: "REGISTRATION_DURATION",
-    outputs: [
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_resolvedAddress",
+        type: "string",
+      },
       {
         internalType: "uint256",
-        name: "",
+        name: "_years",
         type: "uint256",
       },
+      {
+        internalType: "bool",
+        name: "_setPrimary",
+        type: "bool",
+      },
     ],
-    stateMutability: "view",
+    name: "registerDomain",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "_years",
+        type: "uint256",
+      },
+      {
+        internalType: "bytes[]",
+        name: "priceUpdateData",
+        type: "bytes[]",
+      },
+    ],
+    name: "renewDomain",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+    ],
+    name: "setPrimaryDomain",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "address",
+        name: "_newOwner",
+        type: "address",
+      },
+    ],
+    name: "transferDomain",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_newAddress",
+        type: "string",
+      },
+    ],
+    name: "updateResolvedAddress",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
 ];

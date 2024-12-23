@@ -18,7 +18,7 @@ const pythConnection = new EvmPriceServiceConnection(
 export function useNameService(name: string) {
   const { address } = useAccount();
 
-  const { data: price } = useReadContract({
+  const { data: price, error: priceError } = useReadContract({
     address: ORDERLY_DOMAIN_ADDRESS,
     abi: ORDERLY_DOMAIN_ABI,
     functionName: "getRegistrationPriceETH",
@@ -53,25 +53,31 @@ export function useNameService(name: string) {
     error,
   } = useWriteContract();
 
-  const { isLoading, isSuccess } = useWaitForTransactionReceipt({
+  const {
+    isLoading,
+    isSuccess,
+    error: errorName,
+  } = useWaitForTransactionReceipt({
     hash,
   });
-  console.log("error", error, loader, hash, isSuccess);
-  const registerDomain = async (years: number) => {
-    console.log("Registration Details", [name, address, years, []]);
+  console.log("error", errorName, priceError);
+  const registerDomain = async (years: number, isMainDomain: boolean) => {
+    console.log("Registration Details", [name, address, years, isMainDomain]);
 
     try {
       const priceFeeds = await pythConnection.getPriceFeedsUpdateData([
         "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
       ]);
 
-      console.log("priceFeeds", priceFeeds);
+      // console.log("priceFeeds", priceFeeds);
+
+      const domainName = name.toLowerCase();
 
       const result = await writeContract({
         address: ORDERLY_DOMAIN_ADDRESS,
         abi: ORDERLY_DOMAIN_ABI,
         functionName: "registerDomain",
-        args: [name, address, years],
+        args: [domainName, address, years, isMainDomain],
         value: price,
       });
 
@@ -84,7 +90,7 @@ export function useNameService(name: string) {
   };
 
   return {
-    price,
+    price: Number(price) / 10 ** 18,
     domainList,
     isDomainAvailable,
     isDomainLoading,

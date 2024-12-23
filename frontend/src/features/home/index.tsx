@@ -1,21 +1,28 @@
 "use client";
-import TokenWaterfall from "@/components/explosion";
 import { useNameService } from "@/hooks/useNameService";
 import { isAlphanumeric } from "@/utils/format";
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FiArrowRight, FiMinus, FiPlus, FiSearch } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiCheck,
+  FiMinus,
+  FiPlus,
+  FiSearch,
+} from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
+import { PiXLogo } from "react-icons/pi";
 
 enum DomainState {
   INITIAL = 0,
-  PREPARING_OUT = 1,
-  PREPARING_IN = 2,
-  BUY_DOMAIN = 3,
+  REGISTER = 1,
+  SUCCESS = 2,
 }
 
 export const Home = () => {
   const [domainName, setDomainName] = useState("");
+  const [isMainDomain, setIsMainDomain] = useState(false);
   const [showBuyDomain, setShowBuyDomain] = useState(DomainState.INITIAL);
   const [registerForYears, setRegisterForYears] = useState(1);
   const {
@@ -33,7 +40,7 @@ export const Home = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await registerDomain(registerForYears);
+      const res = await registerDomain(registerForYears, isMainDomain);
       console.log("rese", res);
     } catch (e) {
       console.log("e", e);
@@ -43,17 +50,15 @@ export const Home = () => {
 
   const handleDomainTransition = () => {
     if (isDomainAvailable && !isDomainLoading) {
-      setShowBuyDomain(DomainState.PREPARING_OUT);
-
-      const buyDomainTimeout = setTimeout(() => {
-        setShowBuyDomain(DomainState.BUY_DOMAIN);
-      }, 1000);
-
-      return () => {
-        clearTimeout(buyDomainTimeout);
-      };
+      setShowBuyDomain(DomainState.REGISTER);
     }
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      setShowBuyDomain(DomainState.SUCCESS);
+    }
+  }, [isSuccess]);
 
   const incrementYears = () => {
     setRegisterForYears((prev) => {
@@ -86,17 +91,14 @@ export const Home = () => {
         backgroundBlendMode: "overlay, overlay",
       }}
     >
-      <TokenWaterfall />
-      <div className="w-[600px] overflow-hidden ">
+      <div className={`max-w-[700px] w-[90%] overflow-hidden`}>
         <div className="flex w-full overflow-hidden">
           <div
             className={` ${
-              showBuyDomain === DomainState.PREPARING_OUT
-                ? "opacity-100 -translate-x-0"
-                : showBuyDomain === DomainState.BUY_DOMAIN
-                ? "opacity-100 -translate-x-0"
-                : "opacity-0 -translate-x-full"
-            } pb-2 transition-all duration-500 ease-in-out min-w-[600px]`}
+              showBuyDomain === DomainState.INITIAL
+                ? "opacity-0 -translate-x-full"
+                : "opacity-100 -translate-x-0"
+            } pb-2 transition-all duration-500 ease-in-out min-w-[700px] w-[90%]`}
           >
             <div
               className={`bg-[url('/assets/orderly-gradient.png')] bg-no-repeat bg-cover flex items-center rounded-full mx-auto w-fit h-[90px] border border-borderColor px-8 py-5   `}
@@ -111,7 +113,36 @@ export const Home = () => {
                 {domainName}.orderly
               </p>
             </div>
-            <div className="rounded-2xl bg-secondary border border-borderColor shadow-sm shadow-brandColor p-10 w-[99%] mx-auto mt-[60px]">
+            <div
+              className={`${
+                showBuyDomain === DomainState.SUCCESS
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 pointer-events-none scale-90 translate-y-10"
+              } absolute left-0 right-0 transition-all duration-700 ease-in-out leading-tight w-full text-6xl text-white font-semibold text-center mt-[60px]`}
+            >
+              <p>
+                Congrats {domainName}! <br />
+                You just join the Order!
+              </p>
+              <button
+                onClick={() => {}}
+                className="text-2xl mt-10 text-white font-medium flex items-center justify-between mx-auto"
+              >
+                <Link href="">
+                  <span className="flex items-center justify-center">
+                    <PiXLogo className="mr-2.5" /> Share on X now!
+                  </span>
+                </Link>
+              </button>
+            </div>
+            <div
+              className={`rounded-2xl bg-secondary border border-borderColor shadow-sm shadow-brandColor p-10 
+                mx-auto mt-[60px] transition-all duration-1000 ease-in-out ${
+                  showBuyDomain === DomainState.SUCCESS
+                    ? "opacity-0 translate-x-[101%] pointer-events-none"
+                    : "opacity-100"
+                } transition-all duration-300 ease-in-out w-[99%]`}
+            >
               <div className="flex w-full gap-10 justify-around">
                 <div className="">
                   <p className="text-slate-400 text-base font-semibold mb-3 uppercase">
@@ -141,22 +172,40 @@ export const Home = () => {
                   </p>
                   <div className="flex items-center gap-5">
                     <p className="text-3xl text-white font-bold">
-                      {(Number(price) / 10 ** 18).toFixed(5)} ETH
+                      {(price * registerForYears).toFixed(6)} ETH{" "}
+                      <span className="text-xl text-slate-400 font-semibold">
+                        {2 * registerForYears} USD
+                      </span>
                     </p>
                   </div>
                 </div>{" "}
               </div>
+              <div className="flex items-center w-fit  mt-10 mb-5">
+                <button
+                  onClick={() => setIsMainDomain((prev) => !prev)}
+                  className={`flex items-center`}
+                >
+                  <div className="h-5 w-5 flex items-center justify-center rounded bg-terciary border border-borderColor ">
+                    {isMainDomain ? (
+                      <FiCheck className="text-white text-sm" />
+                    ) : null}{" "}
+                  </div>
+                  <p className="text-slate-300 ml-4 font-medium">
+                    Set as Primary Name
+                  </p>
+                </button>
+              </div>
               <button
                 onClick={handleSubmit}
                 disabled={isLoading || !domainName}
-                className="w-full bg-blue-500 mt-10 h-[60px] text-white bg-[url('/assets/orderly-gradient.png')] 
+                className="w-full bg-blue-500 h-[60px] text-white bg-[url('/assets/orderly-gradient.png')] 
                 bg-no-repeat bg-cover bg-center rounded-2xl py-2 px-4 hover:bg-top transition-all duration-300 ease-in-out
                  disabled:opacity-50 text-xl font-medium"
               >
                 {isLoading ? "Registering..." : "Register Domain"}
-              </button>
+              </button>{" "}
             </div>
-          </div>{" "}
+          </div>
           <div
             className={`${
               showBuyDomain === DomainState.PREPARING_OUT
@@ -193,14 +242,18 @@ export const Home = () => {
                 )}
               </div>
               <div className="bg-borderColor w-full h-0.5 mb-5" />
-              {(!isValidFormat && domainName) || domainName.length <= 2 ? (
+              {(!isValidFormat && domainName) ||
+              domainName.length <= 2 ||
+              domainName.length > 20 ? (
                 <div className="h-[68px]  w-full">
                   <p className="text-sm text-white font-semibold uppercase">
                     Not Available
                   </p>
                   <p className="text-base text-white font-medium mt-3">
                     {domainName.length <= 2
-                      ? "Name too short."
+                      ? "Name too short"
+                      : domainName.length > 20
+                      ? "Name too long"
                       : "Only letters and numbers are allowed"}
                   </p>
                 </div>
@@ -211,9 +264,7 @@ export const Home = () => {
               ) : (
                 <>
                   <p className="text-sm text-white font-semibold uppercase">
-                    {isDomainAvailable && !isDomainLoading
-                      ? "Available"
-                      : "Not available"}
+                    {isDomainAvailable ? "Available" : "Not available"}
                   </p>
                   <button
                     onClick={handleDomainTransition}
@@ -222,7 +273,7 @@ export const Home = () => {
                     <p className="text-base text-white font-medium">
                       {domainName.toLocaleLowerCase()}.orderly
                     </p>
-                    {isDomainAvailable && !isDomainLoading ? (
+                    {isDomainAvailable ? (
                       <FiArrowRight className="text-xl text-white mx-3" />
                     ) : (
                       <p className="text-base text-slate-300 font-semibold">
@@ -235,11 +286,6 @@ export const Home = () => {
             </div>
           </div>
         </div>
-        {isSuccess && (
-          <div className="mt-4 p-4 bg-green-100 text-green-700 rounded">
-            Domain registered successfully!
-          </div>
-        )}
       </div>
     </main>
   );
