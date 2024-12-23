@@ -1,6 +1,9 @@
 "use client";
+import TokenWaterfall from "@/components/explosion";
 import { useNameService } from "@/hooks/useNameService";
-import { useState } from "react";
+import { isAlphanumeric } from "@/utils/format";
+import { useMemo, useState } from "react";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiArrowRight, FiMinus, FiPlus, FiSearch } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 
@@ -25,10 +28,17 @@ export const Home = () => {
     isDomainLoading,
   } = useNameService(domainName);
 
+  console.log("domainList", domainList);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await registerDomain();
-    setDomainName("");
+    try {
+      const res = await registerDomain(registerForYears);
+      console.log("rese", res);
+    } catch (e) {
+      console.log("e", e);
+    }
+    // setDomainName("");
   };
 
   const handleDomainTransition = () => {
@@ -47,7 +57,7 @@ export const Home = () => {
 
   const incrementYears = () => {
     setRegisterForYears((prev) => {
-      if (prev === 3) return prev;
+      if (prev === 4) return prev;
       return prev + 1;
     });
   };
@@ -59,17 +69,24 @@ export const Home = () => {
     });
   };
 
+  const isValidFormat = useMemo(() => {
+    return isAlphanumeric(domainName);
+  }, [domainName]);
+
   return (
     <main
-      className="h-screen w-screen flex flex-col items-center justify-center"
+      className="h-screen w-screen flex flex-col items-center justify-center transition-all duration-1000 ease-in-out"
       style={{
         backgroundImage: `url('/layers/layer-3.svg'),url('/layers/layer-4.svg')`,
-        backgroundPosition: "center left, center right",
-        backgroundSize: "30%, 40%",
+        backgroundPosition: showBuyDomain
+          ? "center left, top right"
+          : "center left, center right",
+        backgroundSize: showBuyDomain ? "35%, 45%" : "30%, 40%",
         backgroundRepeat: "no-repeat, no-repeat",
         backgroundBlendMode: "overlay, overlay",
       }}
     >
+      <TokenWaterfall />
       <div className="w-[600px] overflow-hidden ">
         <div className="flex w-full overflow-hidden">
           <div
@@ -150,7 +167,7 @@ export const Home = () => {
             }
                transition-all duration-500 ease-in-out min-w-[600px]`}
           >
-            <label className="block mb-5 text-white font-bold text-xl">
+            <label className="block mb-5 text-white font-bold text-2xl">
               Your Orderly identity starts here.
             </label>
             <div
@@ -163,7 +180,7 @@ export const Home = () => {
                   type="text"
                   value={domainName}
                   onChange={(e) => setDomainName(e.target.value)}
-                  placeholder="SEARCH FOR A NAME"
+                  placeholder="Search for a name"
                   className="w-full  text-2xl text-white placeholder:text-slate-100 font-medium"
                   disabled={isLoading}
                 />
@@ -176,24 +193,45 @@ export const Home = () => {
                 )}
               </div>
               <div className="bg-borderColor w-full h-0.5 mb-5" />
-              <p className="text-sm text-white font-semibold uppercase">
-                {isDomainAvailable && !isDomainLoading
-                  ? "Available"
-                  : "Not available"}
-              </p>
-              <button
-                onClick={handleDomainTransition}
-                className="flex items-center justify-between mt-3 pb-3 w-full"
-              >
-                <p className="text-base text-white font-medium">
-                  {domainName}.orderly
-                </p>
-                {isDomainAvailable && !isDomainLoading ? (
-                  <FiArrowRight className="text-xl text-white mx-3" />
-                ) : (
-                  "Registered"
-                )}
-              </button>
+              {(!isValidFormat && domainName) || domainName.length <= 2 ? (
+                <div className="h-[68px]  w-full">
+                  <p className="text-sm text-white font-semibold uppercase">
+                    Not Available
+                  </p>
+                  <p className="text-base text-white font-medium mt-3">
+                    {domainName.length <= 2
+                      ? "Name too short."
+                      : "Only letters and numbers are allowed"}
+                  </p>
+                </div>
+              ) : isDomainLoading ? (
+                <div className="flex h-[68px] items-center justify-center w-full">
+                  <AiOutlineLoading3Quarters className="animate-spin text-white font-medium text-2xl" />
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-white font-semibold uppercase">
+                    {isDomainAvailable && !isDomainLoading
+                      ? "Available"
+                      : "Not available"}
+                  </p>
+                  <button
+                    onClick={handleDomainTransition}
+                    className="flex items-center justify-between mt-3 pb-3 w-full"
+                  >
+                    <p className="text-base text-white font-medium">
+                      {domainName.toLocaleLowerCase()}.orderly
+                    </p>
+                    {isDomainAvailable && !isDomainLoading ? (
+                      <FiArrowRight className="text-xl text-white mx-3" />
+                    ) : (
+                      <p className="text-base text-slate-300 font-semibold">
+                        Already registered
+                      </p>
+                    )}
+                  </button>{" "}
+                </>
+              )}
             </div>
           </div>
         </div>

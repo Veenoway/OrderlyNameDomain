@@ -1,5 +1,5 @@
 export const ORDERLY_DOMAIN_ADDRESS =
-  "0x30247A1640177628E04Fe2F960947a0a60Cb4291";
+  "0x76D75055dFA30b10a199271D9336bFC58aF5e9a9";
 
 export const ORDERLY_DOMAIN_ABI = [
   {
@@ -34,27 +34,14 @@ export const ORDERLY_DOMAIN_ABI = [
     type: "error",
   },
   {
-    inputs: [
-      {
-        internalType: "string",
-        name: "_name",
-        type: "string",
-      },
-      {
-        internalType: "string",
-        name: "_resolvedAddress",
-        type: "string",
-      },
-      {
-        internalType: "bytes[]",
-        name: "priceUpdateData",
-        type: "bytes[]",
-      },
-    ],
-    name: "registerDomain",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
+    inputs: [],
+    name: "InvalidYearDuration",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NoPrimaryDomain",
+    type: "error",
   },
   {
     inputs: [],
@@ -150,11 +137,58 @@ export const ORDERLY_DOMAIN_ABI = [
     type: "event",
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: true,
+        internalType: "bytes32",
+        name: "nameHash",
+        type: "bytes32",
+      },
+    ],
+    name: "PrimaryDomainSet",
+    type: "event",
+  },
+  {
     inputs: [
       {
         internalType: "string",
         name: "_name",
         type: "string",
+      },
+      {
+        internalType: "string",
+        name: "_resolvedAddress",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "_years",
+        type: "uint256",
+      },
+    ],
+    name: "registerDomain",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "_years",
+        type: "uint256",
       },
       {
         internalType: "bytes[]",
@@ -165,6 +199,19 @@ export const ORDERLY_DOMAIN_ABI = [
     name: "renewDomain",
     outputs: [],
     stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "string",
+        name: "_name",
+        type: "string",
+      },
+    ],
+    name: "setPrimaryDomain",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -254,6 +301,11 @@ export const ORDERLY_DOMAIN_ABI = [
         name: "resolvedAddress",
         type: "string",
       },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
     ],
     stateMutability: "view",
     type: "function",
@@ -317,6 +369,11 @@ export const ORDERLY_DOMAIN_ABI = [
       },
       {
         internalType: "string[]",
+        name: "names",
+        type: "string[]",
+      },
+      {
+        internalType: "string[]",
         name: "resolvedAddresses",
         type: "string[]",
       },
@@ -324,6 +381,40 @@ export const ORDERLY_DOMAIN_ABI = [
         internalType: "uint96[]",
         name: "expirationDates",
         type: "uint96[]",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "_owner",
+        type: "address",
+      },
+    ],
+    name: "getPrimaryDomain",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "nameHash",
+        type: "bytes32",
+      },
+      {
+        internalType: "string",
+        name: "name",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "resolvedAddress",
+        type: "string",
+      },
+      {
+        internalType: "uint96",
+        name: "expirationDate",
+        type: "uint96",
       },
     ],
     stateMutability: "view",
@@ -375,6 +466,25 @@ export const ORDERLY_DOMAIN_ABI = [
         internalType: "bool",
         name: "",
         type: "bool",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    name: "primaryDomain",
+    outputs: [
+      {
+        internalType: "bytes32",
+        name: "",
+        type: "bytes32",
       },
     ],
     stateMutability: "view",
