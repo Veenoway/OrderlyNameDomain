@@ -30,8 +30,8 @@ export function WalletConnection() {
                 flex items-center rounded-full mx-auto w-fit h-[50px] border border-borderColor px-8 py-5
                 text-lg text-white font-semibold transition-all duration-300 ease-in-out`}
           >
-            {mainDomain?.[1]
-              ? mainDomain?.[1] + ".orderly"
+            {(mainDomain as string[])?.[1]
+              ? (mainDomain as string[])?.[1] + ".orderly"
               : `${address?.slice(0, 6)}...
             ${address?.slice(-4)}`}
           </button>

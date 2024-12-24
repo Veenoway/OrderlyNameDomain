@@ -208,9 +208,7 @@ export const Home = () => {
           </div>
           <div
             className={`${
-              showBuyDomain === DomainState.PREPARING_OUT
-                ? "opacity-0 translate-x-0"
-                : showBuyDomain === DomainState.INITIAL
+              showBuyDomain === DomainState.INITIAL
                 ? "opacity-100 -translate-x-full"
                 : "opacity-100 translate-x-0"
             }

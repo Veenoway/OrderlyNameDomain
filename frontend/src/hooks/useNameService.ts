@@ -3,17 +3,12 @@ import {
   ORDERLY_DOMAIN_ABI,
   ORDERLY_DOMAIN_ADDRESS,
 } from "@/constants/contract";
-import { EvmPriceServiceConnection } from "@pythnetwork/pyth-evm-js";
 import {
   useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
-
-const pythConnection = new EvmPriceServiceConnection(
-  "https://hermes.pyth.network/"
-);
 
 export function useNameService(name: string) {
   const { address } = useAccount();
@@ -46,12 +41,7 @@ export function useNameService(name: string) {
     args: [address],
   });
 
-  const {
-    writeContract,
-    data: hash,
-    isPending: loader,
-    error,
-  } = useWriteContract();
+  const { writeContract, data: hash } = useWriteContract();
 
   const {
     isLoading,
@@ -60,17 +50,12 @@ export function useNameService(name: string) {
   } = useWaitForTransactionReceipt({
     hash,
   });
+
   console.log("error", errorName, priceError);
   const registerDomain = async (years: number, isMainDomain: boolean) => {
     console.log("Registration Details", [name, address, years, isMainDomain]);
 
     try {
-      const priceFeeds = await pythConnection.getPriceFeedsUpdateData([
-        "0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace",
-      ]);
-
-      // console.log("priceFeeds", priceFeeds);
-
       const domainName = name.toLowerCase();
 
       const result = await writeContract({
@@ -78,7 +63,7 @@ export function useNameService(name: string) {
         abi: ORDERLY_DOMAIN_ABI,
         functionName: "registerDomain",
         args: [domainName, address, years, isMainDomain],
-        value: price,
+        value: price as bigint,
       });
 
       console.log("Transaction Result:", result);
