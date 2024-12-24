@@ -1,15 +1,14 @@
 "use client";
 import { useNameService } from "@/hooks/useNameService";
-import { useConnectWallet } from "@web3-onboard/react";
+import { useConnectWallet, useSetChain } from "@web3-onboard/react";
 import { useEffect, useState } from "react";
 import { baseSepolia } from "viem/chains";
-import { useAccount, useChainId, useSwitchChain } from "wagmi";
+import { useAccount } from "wagmi";
 
 export function WalletConnection() {
   const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
+  const [{ connectedChain }, setChain] = useSetChain();
   const { address } = useAccount();
-  const chainId = useChainId();
-  const { switchChain } = useSwitchChain();
   const { mainDomain } = useNameService("");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -26,14 +25,23 @@ export function WalletConnection() {
       : `${address?.slice(0, 6)}...${address?.slice(-4)}`;
   };
 
-  const isWrongNetwork = chainId !== baseSepolia.id;
+  const isWrongNetwork =
+    connectedChain?.id !== `0x${baseSepolia.id.toString(16)}`;
+
+  const handleSwitchNetwork = async () => {
+    try {
+      await setChain({ chainId: `0x${baseSepolia.id.toString(16)}` });
+    } catch (err) {
+      console.error("Failed to switch network:", err);
+    }
+  };
 
   if (wallet && isWrongNetwork) {
     return (
       <button
-        onClick={() => switchChain({ chainId: baseSepolia.id })}
+        onClick={handleSwitchNetwork}
         className="bg-[url('/assets/orderly-gradient.png')] bg-center hover:bg-top bg-no-repeat bg-cover
-          flex items-center rounded-full mx-auto w-fit h-[50px] border border-borderColor px-8 py-5
+          flex items-center rounded-full w-fit h-[50px] border border-borderColor px-8 py-5
           text-lg text-white font-medium transition-all duration-300 ease-in-out"
       >
         Switch to Base Sepolia
