@@ -1,6 +1,7 @@
 "use client";
 import { useNameService } from "@/hooks/useNameService";
 import { isAlphanumeric } from "@/utils/format";
+import { useConnectWallet, useSetChain } from "@web3-onboard/react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -13,6 +14,8 @@ import {
 } from "react-icons/fi";
 import { IoClose } from "react-icons/io5";
 import { PiXLogo } from "react-icons/pi";
+import { baseSepolia } from "viem/chains";
+import { injected, useAccount, useConnect } from "wagmi";
 
 enum DomainState {
   INITIAL = 0,
@@ -34,16 +37,43 @@ export const Home = () => {
     isSuccess,
     isDomainLoading,
   } = useNameService(domainName);
+  const [{ wallet }, connect] = useConnectWallet();
+  const [{ connectedChain }, setChain] = useSetChain();
+  const { address } = useAccount();
+  const { connectAsync: connectWagmi } = useConnect();
+
+  const handleSwitchNetwork = async () => {
+    try {
+      await setChain({ chainId: `0x${baseSepolia.id.toString(16)}` });
+    } catch (err) {
+      console.error("Failed to switch network:", err);
+    }
+  };
 
   console.log("domainList", domainList);
 
+  const isWrongNetwork =
+    connectedChain?.id !== `0x${baseSepolia.id.toString(16)}`;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await registerDomain(registerForYears, isMainDomain);
-      console.log("rese", res);
-    } catch (e) {
-      console.log("e", e);
+    if (wallet && address) {
+      if (isWrongNetwork) {
+        handleSwitchNetwork();
+        return;
+      }
+
+      try {
+        const res = await registerDomain(registerForYears, isMainDomain);
+        console.log("rese", res);
+      } catch (e) {
+        console.log("e", e);
+      }
+    } else {
+      await connect();
+      connectWagmi({
+        connector: injected(),
+      });
     }
     // setDomainName("");
   };
@@ -199,11 +229,17 @@ export const Home = () => {
                 onClick={handleSubmit}
                 disabled={isLoading || !domainName}
                 className="w-full bg-blue-500 h-[60px] text-white bg-[url('/assets/orderly-gradient.png')] 
-                bg-no-repeat bg-cover bg-center rounded-2xl py-2 px-4 hover:bg-top transition-all duration-300 ease-in-out
-                 disabled:opacity-50 text-xl font-medium"
+                  bg-no-repeat bg-cover bg-center rounded-2xl py-2 px-4 hover:bg-top transition-all duration-300 ease-in-out
+                  disabled:opacity-50 text-xl font-medium"
               >
-                {isLoading ? "Registering..." : "Register Domain"}
-              </button>{" "}
+                {!wallet
+                  ? "Connect Wallet"
+                  : isWrongNetwork
+                  ? "Switch to Base Sepolia"
+                  : isLoading
+                  ? "Registering..."
+                  : "Register Domain"}
+              </button>
             </div>
           </div>
           <div

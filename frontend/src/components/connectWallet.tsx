@@ -14,10 +14,8 @@ export function WalletConnection() {
   const { mainDomain } = useNameService("");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // Synchroniser Web3-Onboard avec Wagmi
   useEffect(() => {
     if (wallet) {
-      // Connecter Wagmi quand Web3-Onboard est connecté
       connectWagmi({
         connector: injected(),
       });
