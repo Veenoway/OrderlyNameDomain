@@ -32,7 +32,10 @@ export function WalletConnection() {
     if (connecting || isInitialLoading) return "Loading...";
     return (mainDomain as string[])?.[1]
       ? (mainDomain as string[])[1] + ".orderly"
-      : `${address?.slice(0, 6)}...${address?.slice(-4)}`;
+      : `${wallet?.accounts?.[0]?.address?.slice(
+          0,
+          6
+        )}...${wallet?.accounts?.[0]?.address?.slice(-4)}`;
   };
 
   const isWrongNetwork =
