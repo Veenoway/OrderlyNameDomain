@@ -15,15 +15,15 @@ export function WalletConnection() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
-    if (wallet) {
+    if (wallet && !address) {
       connectWagmi({
         connector: injected(),
       });
     }
-  }, [wallet, connectWagmi]);
+  }, [wallet, connectWagmi, address]);
 
   useEffect(() => {
-    if (wallet && mainDomain !== undefined) {
+    if (wallet) {
       setIsInitialLoading(false);
     }
   }, [wallet, mainDomain]);
@@ -63,7 +63,12 @@ export function WalletConnection() {
     <div>
       {!wallet && (
         <button
-          onClick={() => connect()}
+          onClick={() => {
+            connect();
+            connectWagmi({
+              connector: injected(),
+            });
+          }}
           disabled={connecting}
           className={`bg-[url('/assets/orderly-gradient.png')] bg-center hover:bg-top bg-no-repeat bg-cover
              flex items-center rounded-full mx-auto w-fit h-[50px] border border-borderColor px-8 py-5

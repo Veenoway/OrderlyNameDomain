@@ -36,11 +36,14 @@ export const Home = () => {
     isLoading,
     isSuccess,
     isDomainLoading,
+    mainDomain,
   } = useNameService(domainName);
   const [{ wallet }, connect] = useConnectWallet();
   const [{ connectedChain }, setChain] = useSetChain();
   const { address } = useAccount();
   const { connectAsync: connectWagmi } = useConnect();
+
+  console.log("wallet", wallet, mainDomain);
 
   const handleSwitchNetwork = async () => {
     try {
