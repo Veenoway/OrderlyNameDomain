@@ -3,14 +3,26 @@ import { useNameService } from "@/hooks/useNameService";
 import { useConnectWallet, useSetChain } from "@web3-onboard/react";
 import { useEffect, useState } from "react";
 import { baseSepolia } from "viem/chains";
-import { useAccount } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
+import { injected } from "wagmi/connectors";
 
 export function WalletConnection() {
   const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
   const [{ connectedChain }, setChain] = useSetChain();
   const { address } = useAccount();
+  const { connectAsync: connectWagmi } = useConnect();
   const { mainDomain } = useNameService("");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  // Synchroniser Web3-Onboard avec Wagmi
+  useEffect(() => {
+    if (wallet) {
+      // Connecter Wagmi quand Web3-Onboard est connecté
+      connectWagmi({
+        connector: injected(),
+      });
+    }
+  }, [wallet, connectWagmi]);
 
   useEffect(() => {
     if (wallet && mainDomain !== undefined) {
