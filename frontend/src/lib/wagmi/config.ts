@@ -1,8 +1,7 @@
 import injectedModule from "@web3-onboard/injected-wallets";
 import { init } from "@web3-onboard/react";
-import { http } from "viem";
 import { baseSepolia } from "viem/chains";
-import { createConfig } from "wagmi";
+import { createConfig, http } from "wagmi";
 
 export const web3Onboard = init({
   wallets: [injectedModule()],
@@ -18,9 +17,12 @@ export const web3Onboard = init({
     name: "Orderly Name Service",
     description: "Register your .orderly domain",
   },
+  connect: {
+    autoConnectLastWallet: true,
+  },
 });
 
-export const config = createConfig({
+export const wagmiConfig = createConfig({
   chains: [baseSepolia],
   transports: {
     [baseSepolia.id]: http("https://sepolia.base.org"),

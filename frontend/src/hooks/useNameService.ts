@@ -3,15 +3,19 @@ import {
   ORDERLY_DOMAIN_ABI,
   ORDERLY_DOMAIN_ADDRESS,
 } from "@/constants/contract";
+import { useQueryClient } from "@tanstack/react-query";
+import { useConnectWallet } from "@web3-onboard/react";
+import { useEffect } from "react";
 import {
-  useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
 
 export function useNameService(name: string) {
-  const { address } = useAccount();
+  const [{ wallet }] = useConnectWallet();
+  const queryClient = useQueryClient();
+  const address = wallet?.accounts?.[0]?.address;
 
   const { data: price, error: priceError } = useReadContract({
     address: ORDERLY_DOMAIN_ADDRESS,
@@ -73,6 +77,38 @@ export function useNameService(name: string) {
       throw e;
     }
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "readContract",
+          {
+            address: ORDERLY_DOMAIN_ADDRESS,
+            functionName: "getDomainsByOwner",
+          },
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "readContract",
+          {
+            address: ORDERLY_DOMAIN_ADDRESS,
+            functionName: "getPrimaryDomain",
+          },
+        ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [
+          "readContract",
+          {
+            address: ORDERLY_DOMAIN_ADDRESS,
+            functionName: "isDomainAvailable",
+          },
+        ],
+      });
+    }
+  }, [isSuccess, queryClient]);
 
   return {
     price: Number(price) / 10 ** 18,
