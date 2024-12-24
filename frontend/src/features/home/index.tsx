@@ -45,7 +45,7 @@ export const Home = () => {
     } catch (e) {
       console.log("e", e);
     }
-    setDomainName("");
+    // setDomainName("");
   };
 
   const handleDomainTransition = () => {

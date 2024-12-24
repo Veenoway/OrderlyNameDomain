@@ -2,11 +2,14 @@
 import { useNameService } from "@/hooks/useNameService";
 import { useConnectWallet } from "@web3-onboard/react";
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { baseSepolia } from "viem/chains";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
 export function WalletConnection() {
   const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
   const { address } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
   const { mainDomain } = useNameService("");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -23,6 +26,21 @@ export function WalletConnection() {
       : `${address?.slice(0, 6)}...${address?.slice(-4)}`;
   };
 
+  const isWrongNetwork = chainId !== baseSepolia.id;
+
+  if (wallet && isWrongNetwork) {
+    return (
+      <button
+        onClick={() => switchChain({ chainId: baseSepolia.id })}
+        className="bg-[url('/assets/orderly-gradient.png')] bg-center hover:bg-top bg-no-repeat bg-cover
+          flex items-center rounded-full mx-auto w-fit h-[50px] border border-borderColor px-8 py-5
+          text-lg text-white font-medium transition-all duration-300 ease-in-out"
+      >
+        Switch to Base Sepolia
+      </button>
+    );
+  }
+
   return (
     <div>
       {!wallet && (
@@ -38,7 +56,7 @@ export function WalletConnection() {
         </button>
       )}
 
-      {wallet && (
+      {wallet && !isWrongNetwork && (
         <div className="flex items-center gap-4">
           <button
             onClick={() => disconnect(wallet)}
