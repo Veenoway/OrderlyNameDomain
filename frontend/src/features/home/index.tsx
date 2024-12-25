@@ -34,6 +34,8 @@ export const Home = () => {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
 
+  console.log("address", address);
+
   const {
     price,
     registerDomain,
@@ -268,9 +270,9 @@ export const Home = () => {
                 )}
               </div>
               <div className="bg-borderColor w-full h-0.5 mb-5" />
-              {(!isValidFormat && domainName) ||
-              domainName.length <= 2 ||
-              domainName.length > 20 ? (
+              {(!isValidFormat && domainName && address) ||
+              (domainName.length <= 2 && address) ||
+              (domainName.length > 20 && address) ? (
                 <div className="h-[68px]  w-full">
                   <p className="text-sm text-white font-semibold uppercase">
                     Not Available
