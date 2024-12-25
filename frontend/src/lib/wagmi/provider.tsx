@@ -3,10 +3,9 @@
 import { createAppKit } from "@reown/appkit/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode } from "react";
-import { WagmiProvider } from "wagmi";
-import { mainnet } from "wagmi/chains";
-import { cookieToInitialState } from "wagmi/storage";
-import { wagmiAdapter, wagmiConfig } from "./config";
+import { cookieToInitialState, WagmiProvider } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
+import { wagmiAdapter } from "./config";
 
 const queryClient = new QueryClient();
 
@@ -20,8 +19,8 @@ const metadata = {
 export const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId: "lorjfoeprgjporf",
-  networks: [mainnet],
-  defaultNetwork: mainnet,
+  networks: [baseSepolia],
+  defaultNetwork: baseSepolia,
   metadata,
   features: {
     analytics: true,
@@ -35,10 +34,13 @@ function ContextProvider({
   children: ReactNode;
   cookies: string | null;
 }) {
-  const initialState = cookieToInitialState(wagmiConfig, cookies);
+  const initialState = cookieToInitialState(wagmiAdapter.wagmiConfig, cookies);
 
   return (
-    <WagmiProvider config={wagmiConfig} initialState={initialState}>
+    <WagmiProvider
+      config={wagmiAdapter.wagmiConfig}
+      initialState={initialState}
+    >
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );

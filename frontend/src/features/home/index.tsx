@@ -3,7 +3,7 @@ import { useNameService } from "@/hooks/useNameService";
 import { isAlphanumeric } from "@/utils/format";
 import { useAppKit } from "@reown/appkit/react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   FiArrowRight,
@@ -75,6 +75,12 @@ export const Home = () => {
       await open();
     }
   };
+
+  useEffect(() => {
+    if (isSuccess) {
+      setShowBuyDomain(DomainState.SUCCESS);
+    }
+  }, [isSuccess]);
 
   const incrementYears = () => {
     setRegisterForYears((prev) => {
