@@ -1,20 +1,47 @@
 "use client";
+
+import { createAppKit } from "@reown/appkit/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Web3OnboardProvider } from "@web3-onboard/react";
-import { FC, PropsWithChildren } from "react";
+import { type ReactNode } from "react";
 import { WagmiProvider } from "wagmi";
-import { wagmiConfig, web3Onboard } from "./config";
+import { mainnet } from "wagmi/chains";
+import { cookieToInitialState } from "wagmi/storage";
+import { wagmiAdapter, wagmiConfig } from "./config";
 
 const queryClient = new QueryClient();
 
-export const Providers: FC<PropsWithChildren> = ({ children }) => {
+const metadata = {
+  name: "Name Service dApp",
+  description: "Application avec Name Service",
+  url: "https://votreapp.com",
+  icons: ["https://votre-icone.com/icon.png"],
+};
+
+export const modal = createAppKit({
+  adapters: [wagmiAdapter],
+  projectId: "lorjfoeprgjporf",
+  networks: [mainnet],
+  defaultNetwork: mainnet,
+  metadata,
+  features: {
+    analytics: true,
+  },
+});
+
+function ContextProvider({
+  children,
+  cookies,
+}: {
+  children: ReactNode;
+  cookies: string | null;
+}) {
+  const initialState = cookieToInitialState(wagmiConfig, cookies);
+
   return (
-    <WagmiProvider config={wagmiConfig}>
-      <QueryClientProvider client={queryClient}>
-        <Web3OnboardProvider web3Onboard={web3Onboard}>
-          {children}
-        </Web3OnboardProvider>
-      </QueryClientProvider>
+    <WagmiProvider config={wagmiConfig} initialState={initialState}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
-};
+}
+
+export default ContextProvider;

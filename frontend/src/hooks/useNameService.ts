@@ -3,24 +3,28 @@ import {
   ORDERLY_DOMAIN_ABI,
   ORDERLY_DOMAIN_ADDRESS,
 } from "@/constants/contract";
+import { useAppKit } from "@reown/appkit/react";
 import { useQueryClient } from "@tanstack/react-query";
-import { useConnectWallet } from "@web3-onboard/react";
 import { useEffect } from "react";
 import {
+  useAccount,
   useReadContract,
   useWaitForTransactionReceipt,
   useWriteContract,
 } from "wagmi";
 
 export function useNameService(name: string) {
-  const [{ wallet }] = useConnectWallet();
+  const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
-  const address = wallet?.accounts?.[0]?.address;
+  const { open } = useAppKit();
 
-  const { data: price, error: priceError } = useReadContract({
+  const { data: price } = useReadContract({
     address: ORDERLY_DOMAIN_ADDRESS,
     abi: ORDERLY_DOMAIN_ABI,
     functionName: "getRegistrationPriceETH",
+    query: {
+      enabled: isConnected,
+    },
   });
 
   const { data: isDomainAvailable, isLoading: isDomainLoading } =
@@ -29,6 +33,9 @@ export function useNameService(name: string) {
       abi: ORDERLY_DOMAIN_ABI,
       functionName: "isDomainAvailable",
       args: [name],
+      query: {
+        enabled: isConnected && Boolean(name),
+      },
     });
 
   const { data: domainList } = useReadContract({
@@ -36,6 +43,9 @@ export function useNameService(name: string) {
     abi: ORDERLY_DOMAIN_ABI,
     functionName: "getDomainsByOwner",
     args: [address],
+    query: {
+      enabled: isConnected && Boolean(address),
+    },
   });
 
   const { data: mainDomain } = useReadContract({
@@ -43,21 +53,22 @@ export function useNameService(name: string) {
     abi: ORDERLY_DOMAIN_ABI,
     functionName: "getPrimaryDomain",
     args: [address],
+    query: {
+      enabled: isConnected && Boolean(address),
+    },
   });
 
   const { writeContract, data: hash } = useWriteContract();
 
-  const {
-    isLoading,
-    isSuccess,
-    error: errorName,
-  } = useWaitForTransactionReceipt({
+  const { isLoading, isSuccess } = useWaitForTransactionReceipt({
     hash,
   });
 
-  console.log("error", errorName, priceError);
   const registerDomain = async (years: number, isMainDomain: boolean) => {
-    console.log("Registration Details", [name, address, years, isMainDomain]);
+    if (!isConnected || !address) {
+      await open();
+      return;
+    }
 
     try {
       const domainName = name.toLowerCase();
@@ -80,33 +91,22 @@ export function useNameService(name: string) {
 
   useEffect(() => {
     if (isSuccess) {
-      queryClient.invalidateQueries({
+      // Invalidate queries after successful transaction
+      const queries = [
+        "getDomainsByOwner",
+        "getPrimaryDomain",
+        "isDomainAvailable",
+      ].map((functionName) => ({
         queryKey: [
           "readContract",
           {
             address: ORDERLY_DOMAIN_ADDRESS,
-            functionName: "getDomainsByOwner",
+            functionName,
           },
         ],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [
-          "readContract",
-          {
-            address: ORDERLY_DOMAIN_ADDRESS,
-            functionName: "getPrimaryDomain",
-          },
-        ],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [
-          "readContract",
-          {
-            address: ORDERLY_DOMAIN_ADDRESS,
-            functionName: "isDomainAvailable",
-          },
-        ],
-      });
+      }));
+
+      queries.forEach((query) => queryClient.invalidateQueries(query));
     }
   }, [isSuccess, queryClient]);
 

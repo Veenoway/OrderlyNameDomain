@@ -1,9 +1,9 @@
 "use client";
 import { useNameService } from "@/hooks/useNameService";
 import { isAlphanumeric } from "@/utils/format";
-import { useConnectWallet, useSetChain } from "@web3-onboard/react";
+import { useAppKit } from "@reown/appkit/react";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   FiArrowRight,
@@ -15,7 +15,7 @@ import {
 import { IoClose } from "react-icons/io5";
 import { PiXLogo } from "react-icons/pi";
 import { baseSepolia } from "viem/chains";
-import { injected, useAccount, useConnect } from "wagmi";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
 enum DomainState {
   INITIAL = 0,
@@ -28,57 +28,27 @@ export const Home = () => {
   const [isMainDomain, setIsMainDomain] = useState(false);
   const [showBuyDomain, setShowBuyDomain] = useState(DomainState.INITIAL);
   const [registerForYears, setRegisterForYears] = useState(1);
+
+  const { open } = useAppKit();
+  const { address } = useAccount();
+  const chainId = useChainId();
+  const { switchChain } = useSwitchChain();
+
   const {
     price,
     registerDomain,
-    domainList,
     isDomainAvailable,
     isLoading,
     isSuccess,
     isDomainLoading,
-    mainDomain,
   } = useNameService(domainName);
-  const [{ wallet }, connect] = useConnectWallet();
-  const [{ connectedChain }, setChain] = useSetChain();
-  const { address } = useAccount();
-  const { connectAsync: connectWagmi } = useConnect();
-
-  console.log("wallet", wallet, mainDomain);
 
   const handleSwitchNetwork = async () => {
     try {
-      await setChain({ chainId: `0x${baseSepolia.id.toString(16)}` });
+      await switchChain({ chainId: baseSepolia.id });
     } catch (err) {
       console.error("Failed to switch network:", err);
     }
-  };
-
-  console.log("domainList", domainList);
-
-  const isWrongNetwork =
-    connectedChain?.id !== `0x${baseSepolia.id.toString(16)}`;
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (wallet && address) {
-      if (isWrongNetwork) {
-        handleSwitchNetwork();
-        return;
-      }
-
-      try {
-        const res = await registerDomain(registerForYears, isMainDomain);
-        console.log("rese", res);
-      } catch (e) {
-        console.log("e", e);
-      }
-    } else {
-      await connect();
-      connectWagmi({
-        connector: injected(),
-      });
-    }
-    // setDomainName("");
   };
 
   const handleDomainTransition = () => {
@@ -87,11 +57,24 @@ export const Home = () => {
     }
   };
 
-  useEffect(() => {
-    if (isSuccess) {
-      setShowBuyDomain(DomainState.SUCCESS);
+  const isWrongNetwork = chainId !== baseSepolia.id;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (address) {
+      if (isWrongNetwork) {
+        handleSwitchNetwork();
+        return;
+      }
+      try {
+        await registerDomain(registerForYears, isMainDomain);
+      } catch (e) {
+        console.log("e", e);
+      }
+    } else {
+      await open();
     }
-  }, [isSuccess]);
+  };
 
   const incrementYears = () => {
     setRegisterForYears((prev) => {
@@ -235,7 +218,7 @@ export const Home = () => {
                   bg-no-repeat bg-cover bg-center rounded-2xl py-2 px-4 hover:bg-top transition-all duration-300 ease-in-out
                   disabled:opacity-50 text-xl font-medium"
               >
-                {!wallet
+                {!address
                   ? "Connect Wallet"
                   : isWrongNetwork
                   ? "Switch to Base Sepolia"

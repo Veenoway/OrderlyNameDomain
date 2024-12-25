@@ -1,61 +1,68 @@
 "use client";
+
 import { useNameService } from "@/hooks/useNameService";
-import { useConnectWallet, useSetChain } from "@web3-onboard/react";
+import { useAppKit } from "@reown/appkit/react";
 import { useEffect, useState } from "react";
 import { baseSepolia } from "viem/chains";
-import { useAccount, useConnect } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { useAccount, useChainId, useSwitchChain } from "wagmi";
 
 export function WalletConnection() {
-  const [{ wallet, connecting }, connect, disconnect] = useConnectWallet();
-  const [{ connectedChain }, setChain] = useSetChain();
-  const { address } = useAccount();
-  const { connectAsync: connectWagmi } = useConnect();
+  const { open } = useAppKit();
+  const { address, isConnecting } = useAccount();
+  const chainId = useChainId();
+  const { switchChainAsync } = useSwitchChain();
   const { mainDomain } = useNameService("");
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   useEffect(() => {
-    if (wallet && !address) {
-      connectWagmi({
-        connector: injected(),
-      });
-    }
-  }, [wallet, connectWagmi, address]);
-
-  useEffect(() => {
-    if (wallet) {
+    if (address) {
       setIsInitialLoading(false);
     }
-  }, [wallet, mainDomain]);
+  }, [address, mainDomain]);
 
   const getDisplayText = () => {
-    if (connecting || isInitialLoading) return "Loading...";
+    if (isConnecting || isInitialLoading) return "Loading...";
     return (mainDomain as string[])?.[1]
       ? (mainDomain as string[])[1] + ".orderly"
-      : `${wallet?.accounts?.[0]?.address?.slice(
-          0,
-          6
-        )}...${wallet?.accounts?.[0]?.address?.slice(-4)}`;
+      : `${address?.slice(0, 6)}...${address?.slice(-4)}`;
   };
 
-  const isWrongNetwork =
-    connectedChain?.id !== `0x${baseSepolia.id.toString(16)}`;
+  const isWrongNetwork = chainId !== baseSepolia.id;
 
   const handleSwitchNetwork = async () => {
     try {
-      await setChain({ chainId: `0x${baseSepolia.id.toString(16)}` });
+      await switchChainAsync({
+        chainId: baseSepolia.id,
+      });
     } catch (err) {
       console.error("Failed to switch network:", err);
     }
   };
 
-  if (wallet && isWrongNetwork) {
+  const handleConnect = async () => {
+    try {
+      await open();
+    } catch (err) {
+      console.error("Failed to connect:", err);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    try {
+      await open(); // AppKit gère la déconnexion dans le modal
+    } catch (err) {
+      console.error("Failed to disconnect:", err);
+    }
+  };
+
+  if (address && isWrongNetwork) {
     return (
       <button
         onClick={handleSwitchNetwork}
         className="bg-[url('/assets/orderly-gradient.png')] bg-center hover:bg-top bg-no-repeat bg-cover
           flex items-center rounded-full w-fit h-[50px] border border-borderColor px-8 py-5
-          text-lg text-white font-medium transition-all duration-300 ease-in-out"
+          text-lg text-white font-medium transition-all duration-300 ease-in-out
+          disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Switch to Base Sepolia
       </button>
@@ -64,32 +71,27 @@ export function WalletConnection() {
 
   return (
     <div>
-      {!wallet && (
+      {!address && (
         <button
-          onClick={() => {
-            connect();
-            connectWagmi({
-              connector: injected(),
-            });
-          }}
-          disabled={connecting}
+          onClick={handleConnect}
+          disabled={isConnecting}
           className={`bg-[url('/assets/orderly-gradient.png')] bg-center hover:bg-top bg-no-repeat bg-cover
              flex items-center rounded-full mx-auto w-fit h-[50px] border border-borderColor px-8 py-5
              text-lg text-white font-medium transition-all duration-300 ease-in-out
-             ${connecting ? "opacity-50 cursor-not-allowed" : ""}`}
+             ${isConnecting ? "opacity-50 cursor-not-allowed" : ""}`}
         >
           Connect Wallet
         </button>
       )}
 
-      {wallet && !isWrongNetwork && (
+      {address && !isWrongNetwork && (
         <div className="flex items-center gap-4">
           <button
-            onClick={() => disconnect(wallet)}
+            onClick={handleDisconnect}
             className={`bg-[url('/assets/orderly-gradient.png')] bg-center hover:bg-top bg-no-repeat bg-cover
                 flex items-center rounded-full mx-auto w-fit h-[50px] border border-borderColor px-8 py-5
                 text-lg text-white font-semibold transition-all duration-300 ease-in-out
-                ${connecting || isInitialLoading ? "animate-pulse" : ""}`}
+                ${isConnecting || isInitialLoading ? "animate-pulse" : ""}`}
           >
             {getDisplayText()}
           </button>

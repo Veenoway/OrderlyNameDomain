@@ -1,30 +1,28 @@
-import injectedModule from "@web3-onboard/injected-wallets";
-import { init } from "@web3-onboard/react";
-import { baseSepolia } from "viem/chains";
+import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import { createConfig, http } from "wagmi";
+import { baseSepolia, mainnet, sepolia } from "wagmi/chains";
+import { cookieStorage, createStorage } from "wagmi/storage";
 
-export const web3Onboard = init({
-  wallets: [injectedModule()],
-  chains: [
-    {
-      id: baseSepolia.id,
-      token: "ETH",
-      label: "Base Sepolia",
-      rpcUrl: "https://sepolia.base.org",
-    },
-  ],
-  appMetadata: {
-    name: "Orderly Name Service",
-    description: "Register your .orderly domain",
-  },
-  connect: {
-    autoConnectLastWallet: true,
-  },
-});
+export const projectId = process.env.NEXT_PUBLIC_PROJECT_ID;
 
+if (!projectId) throw new Error("Project ID is not defined");
+
+export const networks = [mainnet, sepolia];
+
+// Configuration Wagmi v2
 export const wagmiConfig = createConfig({
   chains: [baseSepolia],
   transports: {
     [baseSepolia.id]: http("https://sepolia.base.org"),
   },
+  storage: createStorage({
+    storage: cookieStorage,
+  }),
+});
+
+export const wagmiAdapter = new WagmiAdapter({
+  wagmiConfig,
+  ssr: true,
+  projectId,
+  networks,
 });
